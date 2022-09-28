@@ -1,16 +1,16 @@
 
 if WANT_JANSSON
-JANSSON_CPPFLAGS= -I$(top_srcdir)/compat/jansson
+JANSSON_INCLUDE= -I$(top_srcdir)/compat/jansson
 else
-JANSSON_CPPFLAGS=
+JANSSON_INCLUDE=
 endif
 
 EXTRA_DIST	= example-cfg.json nomacro.pl
 
 SUBDIRS		= compat m7
 
-INCLUDES	= $(PTHREAD_FLAGS) -fno-strict-aliasing $(JANSSON_INCLUDES)
-INCLUDES   += -I$(top_srcdir)/m7
+_CPPFLAGS	= $(PTHREAD_FLAGS) -fno-strict-aliasing $(JANSSON_INCLUDES)
+_CPPFLAGS   += -I$(top_srcdir)/m7
 
 bin_PROGRAMS	= minerd
 
