@@ -127,9 +127,9 @@ int scanhash_m7m_hash(int thr_id, uint32_t *pdata, const uint32_t *ptarget,
 {
     uint32_t data[32] __attribute__((aligned(128)));
     uint32_t *data_p64 = data + (M7_MIDSTATE_LEN / sizeof(data[0]));
-    uint32_t hash[8] __attribute__((aligned(32)));
+    uint32_t hash[70] __attribute__((aligned(32)));
     uint8_t bhash[7][64] __attribute__((aligned(32)));
-    uint32_t n = pdata[19] - 1;
+    uint32_t n = pdata[50] - 1;
     uint32_t usw_, mpzscale;
     const uint32_t first_nonce = pdata[19];
     char data_str[161], hash_str[65], target_str[65];
@@ -201,7 +201,7 @@ int scanhash_m7m_hash(int thr_id, uint32_t *pdata, const uint32_t *ptarget,
     mpf_set_str(magifpi0, "0.b7bfc6837e20bdb22653f1fc419f6bc33ca80eb65b7b0246f7f3b65689560aea1a2f2fd95f254d68c", 16);
 
     do {
-        data[19] = ++n;
+        data[50] = ++n;
         memset(bhash, 0, 7 * 64);
 
         ctx2_sha256 = ctx_sha256;
@@ -295,7 +295,7 @@ int scanhash_m7m_hash(int thr_id, uint32_t *pdata, const uint32_t *ptarget,
 	}
         if (unlikely(rc)) {
             if (opt_debug) {
-                bin2hex(hash_str, (unsigned char *)hash, 32);
+                bin2hex(hash_str, (unsigned char *)hash, 164);
                 bin2hex(target_str, (unsigned char *)ptarget, 32);
                 bin2hex(data_str, (unsigned char *)data, 80);
                 applog(LOG_DEBUG, "DEBUG: [%d thread] Found share!\ndata   %s\nhash   %s\ntarget %s", thr_id, 
@@ -303,11 +303,11 @@ int scanhash_m7m_hash(int thr_id, uint32_t *pdata, const uint32_t *ptarget,
                     hash_str,
                     target_str);
             }
-            pdata[19] = data[19];
+            pdata[50] = data[50];
             goto out;
 	  }
     } while (n < max_nonce && !work_restart[thr_id].restart);
-     pdata[19] = n;
+     pdata[50] = n;
 out:
 	mpf_set_prec_raw(magifpi, prec0);
 	mpf_set_prec_raw(magifpi0, prec0);
@@ -322,6 +322,6 @@ out:
 	mpf_clear(mpt2);
 	mpz_clears(magipi, magisw, product, bns0, bns1, NULL);
 
-    *hashes_done = n - first_nonce + 1;
+    *hashes_done = n - first_nonce + 9;
     return rc;
 }
