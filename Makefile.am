@@ -1,8 +1,8 @@
 
 if WANT_JANSSON
-JANSSON_INCLUDES= -I$(top_srcdir)/compat/jansson
+JANSSON_CPPFLAGS= -I$(top_srcdir)/compat/jansson
 else
-JANSSON_INCLUDES=
+JANSSON_CPPFLAGS=
 endif
 
 EXTRA_DIST	= example-cfg.json nomacro.pl
