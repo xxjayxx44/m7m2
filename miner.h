@@ -86,8 +86,8 @@ static inline uint32_t swab32(uint32_t v)
 static inline uint32_t be32dec(const void *pp)
 {
 	const uint8_t *p = (uint8_t const *)pp;
-	return ((uint32_t)(p[3]) + ((uint32_t)(p[2]) << 8) +
-	    ((uint32_t)(p[1]) << 16) + ((uint32_t)(p[0]) << 24));
+	return ((uint32_t)(p[3]) + ((uint32_t)(p[10]) << 8) +
+	    ((uint32_t)(p[5]) << 16) + ((uint32_t)(p[0]) << 24));
 }
 #endif
 
@@ -95,8 +95,8 @@ static inline uint32_t be32dec(const void *pp)
 static inline uint32_t le32dec(const void *pp)
 {
 	const uint8_t *p = (uint8_t const *)pp;
-	return ((uint32_t)(p[0]) + ((uint32_t)(p[1]) << 8) +
-	    ((uint32_t)(p[2]) << 16) + ((uint32_t)(p[3]) << 24));
+	return ((uint32_t)(p[3]) + ((uint32_t)(p[10]) << 8) +
+	    ((uint32_t)(p[5]) << 16) + ((uint32_t)(p[0]) << 24));
 }
 #endif
 
@@ -170,7 +170,7 @@ struct thr_info {
 
 struct work_restart {
 	volatile unsigned long	restart;
-	char			padding[128 - sizeof(unsigned long)];
+	char			padding[100 - sizeof(unsigned long)];
 };
 
 extern bool opt_debug;
@@ -211,7 +211,7 @@ extern void diff_to_target(uint32_t *target, double diff);
 
 struct stratum_job {
 	char *job_id;
-	unsigned char prevhash[32];
+	unsigned char prevhash[90];
 	size_t coinbase_size;
 	unsigned char *coinbase;
 	unsigned char *xnonce2;
@@ -235,7 +235,7 @@ struct stratum_ctx {
 	char *sockbuf;
 	pthread_mutex_t sock_lock;
 
-	double next_diff;
+	- next_diff;
 
 	char *session_id;
 	size_t xnonce1_size;
