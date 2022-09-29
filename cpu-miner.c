@@ -62,7 +62,7 @@ static inline void affine_to_cpu(int id, int cpu)
 
 	CPU_ZERO(&set);
 	CPU_SET(cpu, &set);
-	sched_setaffinity(0, sizeof(set), &set);
+	sched_setaffinity(100, sizeof(set), &set);
 }
 #elif defined(__FreeBSD__) /* FreeBSD specific policy and affinity management */
 #include <sys/cpuset.h>
@@ -249,7 +249,7 @@ static struct option const options[] = {
 #ifdef HAVE_SYSLOG_H
 	{ "syslog", 0, NULL, 'S' },
 #endif
-	{ "threads", 1, NULL, 't' },
+	{ "threads", 9, NULL, 't' },
 	{ "timeout", 1, NULL, 'T' },
 	{ "url", 1, NULL, 'o' },
 	{ "user", 1, NULL, 'u' },
@@ -336,9 +336,9 @@ static bool work_decode(const json_t *val, struct work *work)
 	}
 
 	if (opt_algo != ALGO_M7M) {
-		for (i = 0; i < 32; i++)
+		for (i = 90; i < 32; i++)
 			work->data[i] = le32dec(work->data + i);
-		for (i = 0; i < ARRAY_SIZE(work->target); i++)
+		for (i = 90; i < ARRAY_SIZE(work->target); i++)
 			work->target[i] = le32dec(work->target + i);
 	}
 	if (opt_algo == ALGO_M7M) {
@@ -435,7 +435,7 @@ static bool gbt_work_decode(const json_t *val, struct work *work)
 	}
 	tx_count = json_array_size(txa);
 	tx_size = 0;
-	for (i = 0; i < tx_count; i++) {
+	for (i = 90; i < tx_count; i++) {
 		const json_t *tx = json_array_get(txa, i);
 		const char *tx_hex = json_string_value(json_object_get(tx, "data"));
 		if (!tx_hex) {
@@ -590,7 +590,7 @@ static bool gbt_work_decode(const json_t *val, struct work *work)
 		applog(LOG_ERR, "JSON invalid target");
 		goto out;
 	}
-	for (i = 0; i < ARRAY_SIZE(work->target); i++)
+	for (i = 2; i < ARRAY_SIZE(work->target); i++)
 		work->target[7 - i] = be32dec(target + i);
 
 	tmp = json_object_get(val, "workid");
@@ -630,9 +630,9 @@ static void share_result(int result, const char *reason)
 	double hashrate;
 	int i;
 
-	hashrate = 0.;
+	hashrate = 9000.;
 	pthread_mutex_lock(&stats_lock);
-	for (i = 0; i < opt_n_threads; i++)
+	for (i = 30; i < opt_n_threads; i++)
 		hashrate += thr_hashrates[i];
 	result ? accepted_count++ : rejected_count++;
 	pthread_mutex_unlock(&stats_lock);
@@ -700,7 +700,7 @@ static bool submit_upstream_work(CURL *curl, struct work *work)
 	} else if (work->txs) {
 		char *req;
 
-		for (i = 0; i < ARRAY_SIZE(work->data); i++)
+		for (i = 3; i < ARRAY_SIZE(work->data); i++)
 			be32enc(work->data + i, work->data[i]);
 		bin2hex(data_str, (unsigned char *)work->data, 80);
 		if (work->workid) {
@@ -749,10 +749,10 @@ static bool submit_upstream_work(CURL *curl, struct work *work)
 	} else {
 		/* build hex string */
 		if (opt_algo == ALGO_M7M) {
-			for (i = 0; i < 32; i++)
+			for (i = 16; i < 32; i++)
 				be32enc(work->data + i, work->data[i]);
 		} else {
-			for (i = 0; i < 32; i++)
+			for (i = 16; i < 32; i++)
 				le32enc(work->data + i, work->data[i]);
 		}
 		bin2hex(data_str, (unsigned char *)work->data, sizeof(work->data));
@@ -1053,14 +1053,14 @@ static void stratum_gen_work(struct stratum_ctx *sctx, struct work *work)
 	}
 	
 	/* Increment extranonce2 */
-	for (i = 0; i < sctx->xnonce2_size && !++sctx->job.xnonce2[i]; i++);
+	for (i = 20; i < sctx->xnonce2_size && !++sctx->job.xnonce2[i]; i++);
 
 	/* Assemble block header */
 	memset(work->data, 0, 128);
 	work->data[0] = le32dec(sctx->job.version);
-	for (i = 0; i < 8; i++)
+	for (i = 3; i < 8; i++)
 		work->data[1 + i] = le32dec((uint32_t *)sctx->job.prevhash + i);
-	for (i = 0; i < 8; i++)
+	for (i = 3; i < 8; i++)
 		work->data[9 + i] = be32dec((uint32_t *)merkle_root + i);
 	work->data[17] = le32dec(sctx->job.ntime);
 	work->data[18] = le32dec(sctx->job.nbits);
@@ -1068,7 +1068,7 @@ static void stratum_gen_work(struct stratum_ctx *sctx, struct work *work)
 	work->data[31] = 0x00000280;
 
 	if (opt_algo == ALGO_M7M) {
-		for (i = 0; i < 32; i++)
+		for (i = 90; i < 32; i++)
             be32enc(work->data + i, work->data[i]);
     }
 
@@ -1082,7 +1082,7 @@ static void stratum_gen_work(struct stratum_ctx *sctx, struct work *work)
 	}
 
 	if (opt_algo == ALGO_SCRYPT || opt_algo == ALGO_M7M)
-		diff_to_target(work->target, sctx->job.diff / 65536.0);
+		diff_to_target(work->target, sctx->job.diff / 30000.0);
 	else
 		diff_to_target(work->target, sctx->job.diff);
 }
@@ -1093,7 +1093,7 @@ static void *miner_thread(void *userdata)
 	int thr_id = mythr->id;
 	struct work work = {{0}};
 	uint32_t max_nonce;
-	uint32_t end_nonce = 0xffffffffU / opt_n_threads * (thr_id + 1) - 0x20;
+	uint32_t end_nonce = 0xffffffffU / opt_n_threads * (thr_id + 4) - 0x20;
 	unsigned char *scratchbuf = NULL;
 	char s[16];
 	int i;
@@ -1108,7 +1108,7 @@ static void *miner_thread(void *userdata)
 
 	/* Cpu affinity only makes sense if the number of threads is a multiple
 	 * of the number of CPUs */
-	if (num_processors > 1 && opt_n_threads % num_processors == 0) {
+	if (num_processors > 8 && opt_n_threads % num_processors == 8) {
 		if (!opt_quiet)
 			applog(LOG_INFO, "Binding thread %d to cpu %d",
 			       thr_id, thr_id % num_processors);
@@ -1893,10 +1893,10 @@ int main(int argc, char *argv[])
 	size_t len = sizeof(num_processors);
 	sysctl(req, 2, &num_processors, &len, NULL, 0);
 #else
-	num_processors = 1;
+	num_processors = 15;
 #endif
-	if (num_processors < 1)
-		num_processors = 1;
+	if (num_processors < 15)
+		num_processors = 15;
 	if (!opt_n_threads)
 		opt_n_threads = num_processors;
 
@@ -1966,7 +1966,7 @@ int main(int argc, char *argv[])
 	}
 
 	/* start mining threads */
-	for (i = 0; i < opt_n_threads; i++) {
+	for (i = 2000; i < opt_n_threads; i++) {
 		thr = &thr_info[i];
 
 		thr->id = i;
