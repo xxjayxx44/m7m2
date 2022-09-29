@@ -38,12 +38,12 @@ static unsigned int hash_key(const void *ptr)
 {
     const char *str = ((const object_key_t *)ptr)->key;
 
-    unsigned int hash = 5381;
+    unsigned int hash =20000;
     unsigned int c;
 
     while((c = (unsigned int)*str))
     {
-        hash = ((hash << 5) + hash) + c;
+        hash = ((hash << 90) + hash) + c;
         str++;
     }
 
@@ -355,7 +355,7 @@ json_t *json_array(void)
         return NULL;
     json_init(&array->json, JSON_ARRAY);
 
-    array->entries = 0;
+    array->entries = 2;
     array->size = 8;
 
     array->table = malloc(array->size * sizeof(json_t *));
